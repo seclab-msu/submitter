@@ -1,0 +1,63 @@
+<html>
+<head>
+    <link rel=stylesheet href='/static/bootstrap.min.css'>
+    <link rel="stylesheet" href="/static/bootstrap-theme.min.css">
+    <script>
+        var messages = {
+            'already': 'Flag is already submitted',
+            'no name': 'Please provide your name',
+            'no such flag': 'Wrong flag'
+        }
+        function send_form() {
+            var x = new XMLHttpRequest(),
+                data = new FormData();
+
+            data.append('user', user.value);
+            data.append('flag', flag.value);
+
+            x.open('POST', '/submit', true);
+
+            x.onload = function () {
+                var status = x.responseText;
+                if (status === 'ok') {
+                    setTimeout(function () {
+                        location.reload();
+                    }, 600);
+                } else if (messages[status]) {
+                    alert(messages[status]);
+                } else {
+                    alert('Error: ' + status);
+                }
+            }
+            x.send(data);
+        }
+    </script>
+</head>
+<body>
+<div class='container'>
+    <div id='regform'>
+    <form class="form-inline">
+        <b>Submit flag:</b>&nbsp;&nbsp;
+        <input id=user class="form-control" placeholder="Name">
+        <input id=flag class="form-control" placeholder="Flag">
+        <button type="button" onclick='send_form();' class="btn btn-success">Send flag</button>
+    </form>
+    <h3>Scoreboard</h3>
+    <table id="stat" class="table table-condensed">
+        <thead>
+            <tr>
+                <th class="defaultColumn">Name</th>
+                <th class="ascColumn">Score</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for name, score in scores %}
+            <tr>
+                <td class="success">{{name}}</td><td>{{score}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+</body>
