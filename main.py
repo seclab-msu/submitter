@@ -1,5 +1,4 @@
 from flask import Flask, request, render_template
-from xml import sax
 from subprocess import Popen, PIPE
 import sqlite3
 import os
