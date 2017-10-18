@@ -1,19 +1,20 @@
 import sys
+import os
 import sqlite3
 import base64
 from time import sleep
 
 from flag_replacers import REPLACE_FUNCS
 
-DB = 'db/scores.db'
+DB = os.environ.get('SCORES_DB_PATH', 'db/scores.db')
 
 def replace_flag(task, flag):
     REPLACE_FUNCS[task](task, flag)
 
-def change_flag(delay, task, flag):
+def change_flag(database, delay, task, flag):
     sleep(delay)
 
-    conn = sqlite3.connect(DB)
+    conn = sqlite3.connect(database)
     conn.execute('pragma foreign_keys=ON')
 
     c = conn.cursor()
@@ -29,4 +30,4 @@ if __name__ == "__main__":
     delay = int(sys.argv[1])
     task = sys.argv[2]
     flag = sys.argv[3]
-    change_flag(delay, task, flag)
+    change_flag(DB, delay, task, flag)
