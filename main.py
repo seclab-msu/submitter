@@ -9,8 +9,6 @@ from traceback import print_exc
 
 DB = os.environ.get('SCORES_DB_PATH', 'db/scores.db')
 
-os.chmod(DB, 0664)
-
 app = Flask(__name__)
 
 CHANGE_DELAY = 20
@@ -19,6 +17,7 @@ generate_flag = lambda: '%030x' % random.randrange(16**30)
 
 def init_db():
     conn = sqlite3.connect(DB)
+    os.chmod(DB, 0664)
     conn.execute('pragma foreign_keys=ON')
 
     c = conn.cursor()
