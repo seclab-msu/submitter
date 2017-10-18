@@ -9,6 +9,8 @@ from traceback import print_exc
 
 DB = os.environ.get('SCORES_DB_PATH', 'db/scores.db')
 
+os.chmod(DB, 0664)
+
 app = Flask(__name__)
 
 CHANGE_DELAY = 20
