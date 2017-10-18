@@ -7,7 +7,7 @@ from time import time
 from traceback import print_exc
 
 
-DB = 'db/scores.db'
+DB = os.environ.get('SCORES_DB_PATH', 'db/scores.db')
 
 app = Flask(__name__)
 
