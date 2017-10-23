@@ -33,6 +33,10 @@ CONFIG = {
     'php_xss_sqli_rce_sql': {
         'container': 'php-xss-sqli-rce',
         'mysql_root_password': 'Admin2015'
+    },
+    'php_xss_sqli_rce_rce': {
+        'container': 'php-xss-sqli-rce',
+        'flag_path': '/etc/security/you/pwned/this/server/not/bad/flag'
     }
 
 }
@@ -107,7 +111,6 @@ def replace_flag_in_php_sqli_rce(task, flag):
     with open(cookies_path, 'w') as cookies_file:
         json.dump(bot_cookies, cookies_file, indent=4)
 
-
 def replace_flag_in_php_sqli_rce_sql(task, flag):
     config = CONFIG['php_xss_sqli_rce_sql']
     query = "UPDATE important_bank_data set flag = '%s'" % flag
@@ -118,9 +121,18 @@ def replace_flag_in_php_sqli_rce_sql(task, flag):
     print 'updating mysql flag in internet bank using command', update_db
     subprocess.check_call(update_db)
 
+def replace_flag_in_php_sqli_rce_rce(task, flag):
+    config = CONFIG['php_xss_sqli_rce_rce']
+    change_flag_command = 'echo %s > %s' % (flag, config['flag_path'])
+    update_flag = DOCKER_EXEC + [
+        config['container'], 'bash', '-c', change_flag_command
+    ]
+    print 'updating rce flag in internet bank using command', update_flag
+    subprocess.check_call(update_flag)
 
 REPLACE_FUNCS['their-sql-mysql'] = replace_flag_in_their_mysql
 REPLACE_FUNCS['their-sql-node'] = replace_flag_in_their_node
 REPLACE_FUNCS['bonus-xxe-example-indirect'] = replace_flag_in_xxe_indirect
 REPLACE_FUNCS['php-xss-sqli-rce'] = replace_flag_in_php_sqli_rce
 REPLACE_FUNCS['php-xss-sqli-rce-sql'] = replace_flag_in_php_sqli_rce_sql
+REPLACE_FUNCS['php-xss-sqli-rce-rce'] = replace_flag_in_php_sqli_rce_rce
