@@ -46,6 +46,9 @@ def delayed_change_flag(task, task_prefix):
     new_flag = generate_flag()
 
     if task_prefix is not None:
+        if task_prefix.startswith('const'):
+            print 'not changing flag because prefix starts with const'
+            return
         new_flag = task_prefix + '_' + new_flag
 
     print 'starting process'
