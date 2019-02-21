@@ -1,12 +1,10 @@
 from flask import Flask, request, render_template
-import sqlite3
-import os
 import random
 from time import time
+from datetime import datetime
 from traceback import print_exc
 
-
-DB = os.environ.get('SCORES_DB_PATH', 'db/scores.db')
+from db import connect, IntegrityError
 from run_nowait import run_process_nowait
 
 app = Flask(__name__)
@@ -14,33 +12,6 @@ app = Flask(__name__)
 CHANGE_DELAY = 20
 
 generate_flag = lambda: '%030x' % random.randrange(16**30)
-
-def init_db():
-    conn = sqlite3.connect(DB)
-    os.chmod(DB, 0664)
-    conn.execute('pragma foreign_keys=ON')
-
-    c = conn.cursor()
-
-    c.execute('''CREATE TABLE IF NOT EXISTS tasks
-                 (name text primary key, value real, flag text, prefix text)''')
-
-    c.execute('''CREATE TABLE IF NOT EXISTS users
-                 ( name text primary key, score real)''')
-
-
-    c.execute('''CREATE TABLE IF NOT EXISTS submissions
-                 (user text, flag text)''')
-
-    c.execute('''CREATE TABLE IF NOT EXISTS accepted_flags
-                 (user text,
-                  task text,
-                  primary key(user, task),
-                  foreign key(user) references users(name),
-                  foreign key(task) references tasks(name))''')
-
-    conn.commit()
-    conn.close()
 
 def delayed_change_flag(task, task_prefix):
     new_flag = generate_flag()
@@ -62,12 +33,12 @@ def delayed_change_flag(task, task_prefix):
     print 'started process'
 
 def get_scores():
-    conn = sqlite3.connect(DB)
-    conn.execute('pragma foreign_keys=ON')
-
+    conn = connect()
     c = conn.cursor()
 
-    result = c.execute('select name, score from users order by score desc').fetchall()
+    c.execute('select name, score from users order by score desc')
+
+    return c.fetchall()
 
     conn.commit()
     conn.close()
@@ -75,23 +46,29 @@ def get_scores():
     return result
 
 def check_user(name, cursor):
-    try:
-        cursor.execute("insert into users values (?, 0)", (name,))
-    except sqlite3.IntegrityError:
-        pass
+    if hasattr(cursor, 'insert_if_not_exists'):
+        cursor.insert_if_not_exists("insert into users values (?, 0)", (name,))
+    else:
+        try:
+            cursor.execute("insert into users values (?, 0)", (name,))
+        except IntegrityError:
+            pass
 
 def register_flag(user, flag):
-    conn = sqlite3.connect(DB)
-    conn.execute('pragma foreign_keys=ON')
+    conn = connect()
+
+    now = datetime.now()
 
     c = conn.cursor()
 
     try:
-        c.execute("insert into submissions values (?, ?)", (user, flag))
+        c.execute("insert into submissions values (?, ?, ?)", (user, flag, now))
 
-        task = c.execute(
+        c.execute(
             "select name, value, prefix from tasks where flag = ?", (flag,)
-        ).fetchone()
+        )
+
+        task = c.fetchone()
 
         if task is None:
             return 'no such flag'
@@ -101,7 +78,8 @@ def register_flag(user, flag):
         check_user(user, c)
 
         c.execute(
-            "insert into accepted_flags values (?, ?)", (user, task_name)
+            "insert into accepted_flags values (?, ?, ?)",
+            (user, task_name, now)
         )
         c.execute(
             "update users set score = score + ? where name = ?",
@@ -111,7 +89,7 @@ def register_flag(user, flag):
         delayed_change_flag(task_name, task_prefix)
         print 'done running change flag'
         return 'ok'
-    except sqlite3.IntegrityError:
+    except IntegrityError:
         return 'already'
     finally:
         conn.commit()
