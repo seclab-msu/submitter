@@ -2,6 +2,7 @@
 <head>
     <link rel=stylesheet href='/static/bootstrap.min.css'>
     <link rel="stylesheet" href="/static/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="/static/style.css">
     <script>
         var messages = {
             'already': 'Flag is already submitted',
@@ -42,7 +43,8 @@
         <input id=flag class="form-control" placeholder="Flag">
         <button type="button" onclick='send_form();' class="btn btn-success">Send flag</button>
     </form>
-    <h3>Scoreboard</h3>
+    </div>
+    <h3>Sc0r3board</h3>
     <table id="stat" class="table table-condensed">
         <thead>
             <tr>
@@ -54,7 +56,7 @@
         <tbody>
             {% for name, score in scores %}
             <tr>
-                <td class="success">{{name}}</td><td>{{score}}</td>
+                <td>{{name}}</td><td>{{score}}</td>
             </tr>
             {% endfor %}
         </tbody>
