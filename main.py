@@ -1,5 +1,4 @@
 from flask import Flask, request, render_template
-from subprocess import Popen, PIPE
 import sqlite3
 import os
 import random
@@ -8,6 +7,7 @@ from traceback import print_exc
 
 
 DB = os.environ.get('SCORES_DB_PATH', 'db/scores.db')
+from run_nowait import run_process_nowait
 
 app = Flask(__name__)
 
@@ -52,15 +52,13 @@ def delayed_change_flag(task, task_prefix):
         new_flag = task_prefix + '_' + new_flag
 
     print 'starting process'
-
-    Popen([
+    run_process_nowait([
         'python',
         'change_flag.py',
         str(CHANGE_DELAY),
         task,
         new_flag
-    ], preexec_fn=os.setsid)
-
+    ])
     print 'started process'
 
 def get_scores():
