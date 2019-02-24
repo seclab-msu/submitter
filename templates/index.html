@@ -22,6 +22,8 @@
             x.onload = function () {
                 var status = x.responseText;
                 if (status === 'ok') {
+                    submitbutton.disabled = true;
+                    submitbutton.innerText = 'Accepted!';
                     setTimeout(function () {
                         location.reload();
                     }, 600);
@@ -36,13 +38,13 @@
     </script>
 </head>
 <body>
-<div class='container'>
+<div class='container' onsubmit="event.preventDefault(); send_form();">
     <div id='regform'>
     <form class="form-inline">
         <b>Submit flag:</b>&nbsp;&nbsp;
         <input id=user class="form-control" placeholder="Name">
         <input id=flag class="form-control" placeholder="Flag">
-        <button type="button" onclick='send_form();' class="btn btn-success">Send flag</button>
+        <button id=submitbutton type="submit" class="btn btn-success">Send flag</button>
     </form>
     </div>
     <h3>Sc0r3board</h3>
