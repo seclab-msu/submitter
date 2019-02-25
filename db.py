@@ -1,9 +1,12 @@
 import os
 import sqlite3
 import psycopg2
+import psycopg2.extensions
 
 SQLITE_SCHEMA = 'sqlite://'
 POSTGRES_SCHEMA = 'postgresql://'
+
+psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
 
 class PgCursor(object):
     def __init__(self, conn, *args, **kwargs):
