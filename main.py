@@ -36,7 +36,7 @@ def get_scores():
     conn = connect()
     c = conn.cursor()
 
-    c.execute('select name, score from users order by score desc')
+    c.execute('select name, score from users order by score desc, last_submission')
 
     return c.fetchall()
 
@@ -82,7 +82,7 @@ def register_flag(user, flag):
             (user, task_name, now)
         )
         c.execute(
-            "update users set score = score + ? where name = ?",
+            "update users set score = score + ?, last_submission = now() where name = ?",
             (task_value, user)
         )
         print 'running change flag'
@@ -116,10 +116,7 @@ def submit():
         return register_flag(user, flag)
     except:
         print_exc()
-        raise ex
-
-
-init_db()
+        raise
 
 if __name__ == "__main__":
     app.run(port=8080)

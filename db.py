@@ -70,7 +70,7 @@ def create_tables(conn):
                  (name text primary key, value real, flag text, prefix text)''')
 
     c.execute('''CREATE TABLE IF NOT EXISTS users
-                 ( name text primary key, score real)''')
+                 ( name text primary key, score real, last_submission timestamptz)''')
 
 
     c.execute('''CREATE TABLE IF NOT EXISTS submissions
