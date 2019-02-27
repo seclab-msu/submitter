@@ -21,3 +21,6 @@ td.success {
 table#stat {
     font-size: 16.5px;  
 }
+form.form-inline {
+    margin-top: 1.5em;
+}
