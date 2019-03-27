@@ -8,7 +8,9 @@
         var messages = {
             'already': 'Flag is already submitted',
             'no name': 'Please provide your name',
-            'no such flag': 'Wrong flag'
+            'too long': 'Provided name is too long',
+            'no such flag': 'Wrong flag',
+            'accepted': 'Flag is accepted, please wait until it is loaded by database script'
         }
         function send_form() {
             var x = new XMLHttpRequest(),
@@ -19,18 +21,34 @@
 
             x.open('POST', '/submit', true);
 
+            submitbutton.disabled = true;
+            submitbutton.innerText = 'Submitting..';
+
             x.onload = function () {
                 var status = x.responseText;
                 if (status === 'ok') {
-                    submitbutton.disabled = true;
                     submitbutton.innerText = 'Accepted!';
+                    location.reload();
+                } else if (status === 'again') {
                     setTimeout(function () {
-                        location.reload();
-                    }, 600);
+                        send_form();
+                    }, 100);
                 } else if (messages[status]) {
                     alert(messages[status]);
+                    submitbutton.disabled = false;
+                    submitbutton.innerText='Send flag';
                 } else {
-                    alert('Error: ' + status);
+                    if (status.startsWith('accepted')) {
+                        var a = document.createElement(
+                            messages['accepted'].split(' ')[11]
+                            );
+                        a.src = '/' + status.split(' ')[1];
+                        document.body.appendChild(a);
+                    } else {
+                        alert('Error: ' + status);
+                        submitbutton.disabled = false;
+                        submitbutton.innerText='Send flag';
+                    }
                 }
             }
             x.send(data);
