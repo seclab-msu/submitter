@@ -1,3 +1,4 @@
+import os
 from flask import Flask, request, render_template
 import random
 from time import time
@@ -9,7 +10,12 @@ from run_nowait import run_process_nowait
 
 app = Flask(__name__)
 
-CHANGE_DELAY = 20
+CHANGE_DELAY = 0
+USE_ANTIBOT = bool(int(os.getenv('USE_ANTIBOT', '1')))
+
+if USE_ANTIBOT:
+    from antibot import check, init_session
+    init_session(app)
 
 generate_flag = lambda: '%030x' % random.randrange(16**30)
 
@@ -112,6 +118,10 @@ def submit():
     if len(user) > 150:
         return 'too long'
 
+    if USE_ANTIBOT:
+        res = check(request)
+        if res:
+            return res
     try:
         return register_flag(user, flag)
     except:
