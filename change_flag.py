@@ -11,10 +11,8 @@ def replace_flag(task, flag):
     REPLACE_FUNCS[task](task, flag)
 
 def change_flag(delay, task, flag):
-    sleep(delay)
-
-    replace_flag(task, flag)
-
+    if delay > 0:
+        sleep(delay)
     conn = connect()
 
     c = conn.cursor()
@@ -24,9 +22,10 @@ def change_flag(delay, task, flag):
     conn.commit()
     conn.close()
 
+    replace_flag(task, flag)
 
 if __name__ == "__main__":
-    delay = int(sys.argv[1])
+    delay = float(sys.argv[1])
     task = sys.argv[2]
     flag = sys.argv[3]
     change_flag(delay, task, flag)
