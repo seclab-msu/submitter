@@ -3,27 +3,22 @@ import sys
 import sqlite3
 from subprocess import check_call
 
-DB = os.environ.get('SCORES_DB_PATH', 'db/scores.db')
-
-def connect():
-    conn = sqlite3.connect(DB)
-    conn.execute('pragma foreign_keys=ON')
-    return conn
+from db import connect
 
 def get_tasks(conn):
     c = conn.cursor()
-    tasks_query = c.execute('select name from tasks')
-    result = [row[0] for row in tasks_query]
+    c.execute('select name from tasks')
+    result = [row[0] for row in c.fetchall()]
     c.close()
     return result
 
 def get_flag(conn, task):
     c = conn.cursor()
-    flag_query = c.execute(
+    c.execute(
         'select flag from tasks where name = ?',
         (task, )
     )
-    result = next(flag_query)[0]
+    result = c.fetchone()[0]
     c.close()
     return result
 

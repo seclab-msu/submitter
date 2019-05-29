@@ -1,3 +1,7 @@
 #!/bin/bash
 
-SCORES_DB_PATH=/var/lib/submitter/db/scores.db python reset_flag.py "$@"
+. /etc/default/submitter
+
+export SCORES_DB
+
+python reset_flag.py "$@"
