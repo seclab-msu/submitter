@@ -12,6 +12,7 @@ app = Flask(__name__)
 
 CHANGE_DELAY = 0
 USE_ANTIBOT = bool(int(os.getenv('USE_ANTIBOT', '1')))
+USE_FLAG_REPLACER = True
 
 if USE_ANTIBOT:
     from antibot import check, init_session
@@ -88,9 +89,10 @@ def register_flag(user, flag):
             "update users set score = score + ?, last_submission = datetime('now') where name = ?",
             (task_value, user)
         )
-        print 'running change flag'
-        delayed_change_flag(task_name, task_prefix)
-        print 'done running change flag'
+        if USE_FLAG_REPLACER:
+            print 'running change flag'
+            delayed_change_flag(task_name, task_prefix)
+            print 'done running change flag'
         return 'ok'
     except IntegrityError:
         return 'already'
