@@ -3,8 +3,10 @@ import sqlite3
 import psycopg2
 import psycopg2.extensions
 
-SQLITE_SCHEMA = 'sqlite://'
+SQLITE_SCHEMA = 'sqlite:///'
 POSTGRES_SCHEMA = 'postgresql://'
+
+DB = os.environ.get('SCORES_DB', 'sqlite:///db/scores.db')
 
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
 
@@ -13,7 +15,10 @@ class PgCursor(object):
         self.cursor = conn.cursor(*args, **kwargs)
 
     def execute(self, sql, *args, **kwargs):
-        return self.cursor.execute(sql.replace('?', '%s'), *args, **kwargs)
+        return self.cursor.execute(
+            sql.replace('?', '%s').replace("datetime('now')", "now()"),
+            *args, **kwargs
+        )
 
     def insert_if_not_exists(self, sql, *args, **kwargs):
         return self.execute(sql + ' on conflict do nothing', *args, **kwargs)
@@ -41,7 +46,7 @@ def connect_sqlite(db_path):
     return conn
 
 def init_db():
-    db = os.environ.get('SCORES_DB', 'sqlite://db/scores.db')
+    db = DB
 
     if db.startswith(SQLITE_SCHEMA):
         db_path = db[len(SQLITE_SCHEMA):]

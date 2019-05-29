@@ -36,21 +36,18 @@ def get_scores():
     conn = connect()
     c = conn.cursor()
 
-    c.execute('select name, score from users order by score desc, last_submission')
-
-    return c.fetchall()
-
-    conn.commit()
-    conn.close()
-
-    return result
+    try:
+        c.execute('select name, score from users order by score desc, last_submission')
+        return [(name, score) for name, score in c.fetchall()]
+    finally:
+        conn.close()
 
 def check_user(name, cursor):
     if hasattr(cursor, 'insert_if_not_exists'):
         cursor.insert_if_not_exists("insert into users values (?, 0)", (name,))
     else:
         try:
-            cursor.execute("insert into users values (?, 0)", (name,))
+            cursor.execute("insert into users (name, score) values (?, 0)", (name,))
         except IntegrityError:
             pass
 
@@ -82,7 +79,7 @@ def register_flag(user, flag):
             (user, task_name, now)
         )
         c.execute(
-            "update users set score = score + ?, last_submission = now() where name = ?",
+            "update users set score = score + ?, last_submission = datetime('now') where name = ?",
             (task_value, user)
         )
         print 'running change flag'
