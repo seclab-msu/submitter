@@ -112,6 +112,9 @@ def submit():
     if user == '':
         return 'no name'
 
+    if len(user) > 150:
+        return 'too long'
+
     try:
         return register_flag(user, flag)
     except:
