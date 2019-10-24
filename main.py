@@ -1,5 +1,5 @@
 import os
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, abort
 import random
 from time import time
 from datetime import datetime
@@ -12,6 +12,7 @@ app = Flask(__name__)
 
 CHANGE_DELAY = 0
 USE_ANTIBOT = bool(int(os.getenv('USE_ANTIBOT', '1')))
+USE_REGISTRATION = bool(int(os.getenv('USE_REGISTRATION', '1')))
 USE_FLAG_REPLACER = True
 
 if USE_ANTIBOT:
@@ -44,7 +45,7 @@ def get_scores():
     c = conn.cursor()
 
     try:
-        c.execute('select name, score from users order by score desc, last_submission')
+        c.execute('select name, score from users where active=true order by score desc, last_submission')
         return [(name, score) for name, score in c.fetchall()]
     finally:
         conn.close()
@@ -54,8 +55,10 @@ def check_user_active(name):
     c = conn.cursor()
 
     try:
-        c.execute("select active from users where name=?", name)
-        return c.fetchone()
+        c.execute("select active from users where name=?", (name,))
+        res = c.fetchone()
+        if res:
+            return res[0]
     except IntegrityError as e:
         print("Some error,  while check_user_active", e)
         return False
@@ -63,14 +66,26 @@ def check_user_active(name):
 
 def check_user(name, cursor):
     if hasattr(cursor, 'insert_if_not_exists'):
-        cursor.insert_if_not_exists("insert into users values (?, 0)", (name,))
+        cursor.insert_if_not_exists("insert into users values (?, 0, false)", (name,))
     else:
         try:
-            cursor.execute("insert into users (name, score) values (?, 0)", (name,))
+            cursor.execute("insert into users (name, score, active) values (?, 0, false)", (name,))
         except IntegrityError:
             pass
 
-def register_flag(user, flag):
+def register_user(name):
+    conn = connect()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("insert into users (name, score, active) values (?, 0, false)", (name,))
+        return "ok"
+    except IntegrityError:
+        return "user exists"
+    finally:
+        conn.commit()
+        conn.close()
+
+def register_flag(user, flag, user_ip):
     conn = connect()
 
     now = datetime.now()
@@ -78,7 +93,7 @@ def register_flag(user, flag):
     c = conn.cursor()
 
     try:
-        c.execute("insert into submissions values (?, ?, ?)", (user, flag, now))
+        c.execute("insert into submissions values (?, ?, ?, ?::inet)", (user, flag, now, user_ip))
 
         c.execute(
             "select name, value, prefix from tasks where flag = ?", (flag,)
@@ -91,11 +106,12 @@ def register_flag(user, flag):
 
         task_name, task_value, task_prefix = task
 
-        check_user(user, c)
+        if not USE_REGISTRATION:
+            check_user(user, c)
 
         c.execute(
-            "insert into accepted_flags values (?, ?, ?)",
-            (user, task_name, now)
+            "insert into accepted_flags values (?, ?, ?, ?::inet)",
+            (user, task_name, now, user_ip)
         )
         c.execute(
             "update users set score = score + ?, last_submission = datetime('now') where name = ?",
@@ -116,15 +132,27 @@ def register_flag(user, flag):
 @app.route("/")
 def main():
     try:
-        return render_template('index.html', scores=get_scores())
+        return render_template('index.html',
+                               scores=get_scores(),
+                               registration=USE_REGISTRATION)
     except:
         print_exc()
         raise
+
+@app.route("/register", methods=['POST'])
+def register():
+    if not USE_REGISTRATION:
+        abort(403)
+
+    user = request.form['user'].strip()
+
+    return register_user(user)
 
 @app.route("/submit", methods=['POST'])
 def submit():
     user = request.form['user'].strip()
     flag = request.form['flag'].strip()
+    user_ip = request.remote_addr
 
     if user == '':
         return 'no name'
@@ -136,8 +164,13 @@ def submit():
         res = check(request)
         if res:
             return res
+
+    if USE_REGISTRATION:
+        if not check_user_active(user):
+            return "user inactive"
+
     try:
-        return register_flag(user, flag)
+        return register_flag(user, flag, user_ip)
     except:
         print_exc()
         raise

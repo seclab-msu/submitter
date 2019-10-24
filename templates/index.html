@@ -10,9 +10,13 @@
             'no name': 'Please provide your name',
             'too long': 'Provided name is too long',
             'no such flag': 'Wrong flag',
-            'accepted': 'Flag is accepted, please wait until it is loaded by database script'
+            'accepted': 'Flag is accepted, please wait until it is loaded by database script',
+            {%- if registration -%}
+            'user exists': 'User exists',
+            'user inactive': 'Please wait for the user will be actived',
+            {% endif %}
         }
-        function send_form() {
+        function send_flag(type) {
             var x = new XMLHttpRequest(),
                 data = new FormData();
 
@@ -53,16 +57,48 @@
             }
             x.send(data);
         }
+        {%- if registration -%}
+        function register() {
+          var x = new XMLHttpRequest(),
+              data = new FormData();
+
+          data.append('user', user.value);
+
+          x.open('POST', '/register', true);
+
+          registerbutton.disabled = true;
+          registerbutton.innerText = 'Submitting..';
+
+          x.onload = function () {
+              var status = x.responseText;
+              if (status === 'ok') {
+                  registerbutton.innerText = 'Success!';
+              } else if (status === 'again') {
+                  setTimeout(function () {
+                      send_form();
+                  }, 100);
+              } else if (messages[status]) {
+                  alert(messages[status]);
+                  registerbutton.disabled = false;
+                  registerbutton.innerText='Register';
+              }
+          }
+          x.send(data);
+        }
+        {% endif %}
     </script>
 </head>
 <body>
-<div class='container' onsubmit="event.preventDefault(); send_form();">
+<div class='container'>
     <div id='regform'>
     <form class="form-inline">
         <b>Submit flag:</b>&nbsp;&nbsp;
         <input id=user class="form-control" placeholder="Name">
         <input id=flag class="form-control" placeholder="Flag">
-        <button id=submitbutton type="submit" class="btn btn-success">Send flag</button>
+        <button id=submitbutton type="submit" class="btn btn-success" onclick="send_flag()">Send flag</button>
+        {%- if registration -%}
+        <button id=registerbutton type="submit" class="btn btn-success" onclick="register()">Register</button>
+        {% endif %}
     </form>
     </div>
     <h3>Sc0r3board</h3>
