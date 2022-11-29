@@ -69,7 +69,7 @@ def replace_flag_in_their_mysql(task, flag):
             config['container'], 'mysql', '-u', 'root',
             '-p' + CONFIG['mysql_root_password'], config['db_name'], '-e', query
         ]
-        print 'updating flag in', task_part, 'using command', update_db
+        print('updating flag in', task_part, 'using command', update_db)
         subprocess.check_call(update_db)
 
 def replace_flag_in_their_node(task, flag):
@@ -83,7 +83,7 @@ def replace_flag_in_their_node(task, flag):
     update_db = DOCKER_EXEC + [
         config['container'], 'sqlite3', config['db_path'], query
     ]
-    print 'updating flag in their_node using command', update_db
+    print('updating flag in their_node using command', update_db)
     subprocess.check_call(update_db)
 
 def replace_flag_in_xxe_indirect(task, flag):
@@ -93,7 +93,7 @@ def replace_flag_in_xxe_indirect(task, flag):
     update_db = DOCKER_EXEC + [
         config['container'], 'sqlite3', config['db_path'], query
     ]
-    print 'updating flag in bonus xxe_indirect using command', update_db
+    print('updating flag in bonus xxe_indirect using command', update_db)
     subprocess.check_call(update_db)
 
 def replace_flag_in_php_sqli_rce(task, flag):
@@ -106,7 +106,7 @@ def replace_flag_in_php_sqli_rce(task, flag):
         if cookie['name'] == 'flag':
             cookie['value'] = flag
 
-    print "updating flag in bot's cookie (internet bank)"
+    print("updating flag in bot's cookie (internet bank)")
 
     with open(cookies_path, 'w') as cookies_file:
         json.dump(bot_cookies, cookies_file, indent=4)
@@ -118,7 +118,7 @@ def replace_flag_in_php_sqli_rce_sql(task, flag):
         config['container'], 'mysql', '-u', 'root',
         '-p' + config['mysql_root_password'], 'bank', '-e', query
     ]
-    print 'updating mysql flag in internet bank using command', update_db
+    print('updating mysql flag in internet bank using command', update_db)
     subprocess.check_call(update_db)
 
 def replace_flag_in_php_sqli_rce_rce(task, flag):
@@ -127,7 +127,7 @@ def replace_flag_in_php_sqli_rce_rce(task, flag):
     update_flag = DOCKER_EXEC + [
         config['container'], 'bash', '-c', change_flag_command
     ]
-    print 'updating rce flag in internet bank using command', update_flag
+    print('updating rce flag in internet bank using command', update_flag)
     subprocess.check_call(update_flag)
 
 REPLACE_FUNCS['their-sql-mysql'] = replace_flag_in_their_mysql

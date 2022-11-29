@@ -28,17 +28,17 @@ if __name__ == "__main__":
         tasks = [sys.argv[1]]
     else:
         tasks = get_tasks(conn)
-        print 'will reset flags for all tasks:', tasks
+        print('will reset flags for all tasks:', tasks)
     flags = {task: get_flag(conn, task) for task in tasks}
     conn.close()
     for task in tasks:
-        print 'resetting flag for task', task, '(to value', flags[task], ')'
+        print('resetting flag for task', task, '(to value', flags[task], ')')
         check_call([
-            'python',
+            'python3',
             'change_flag.py',
             str(0),
             task,
             flags[task]
         ], preexec_fn=os.setsid)
-        print 'done'
+        print('done')
 

@@ -25,19 +25,19 @@ def delayed_change_flag(task, task_prefix):
 
     if task_prefix is not None:
         if task_prefix.startswith('const'):
-            print 'not changing flag because prefix starts with const'
+            print('not changing flag because prefix starts with const')
             return
         new_flag = task_prefix + '_' + new_flag
 
-    print 'starting process'
+    print('starting process')
     run_process_nowait([
-        'python',
+        'python3',
         'change_flag.py',
         str(CHANGE_DELAY),
         task,
         new_flag
     ])
-    print 'started process'
+    print('started process')
 
 def get_scores():
     conn = connect()
@@ -48,6 +48,18 @@ def get_scores():
         return [(name, score) for name, score in c.fetchall()]
     finally:
         conn.close()
+
+def check_user_active(name):
+    conn = connect()
+    c = conn.cursor()
+
+    try:
+        c.execute("select active from users where name=?", name)
+        return c.fetchone()
+    except IntegrityError as e:
+        print("Some error,  while check_user_active", e)
+        return False
+    c.close()
 
 def check_user(name, cursor):
     if hasattr(cursor, 'insert_if_not_exists'):
@@ -90,9 +102,9 @@ def register_flag(user, flag):
             (task_value, user)
         )
         if USE_FLAG_REPLACER:
-            print 'running change flag'
+            print('running change flag')
             delayed_change_flag(task_name, task_prefix)
-            print 'done running change flag'
+            print('done running change flag')
         return 'ok'
     except IntegrityError:
         return 'already'

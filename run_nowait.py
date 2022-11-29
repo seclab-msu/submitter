@@ -30,7 +30,7 @@ def run_docker_with_timeout(container, args, docker_args, timeout=TIMEOUT):
         if process.poll() is not None:
             return
         time.sleep(0.5)
-    print 'timeout exceeded: killing container', name
+    print('timeout exceeded: killing container', name)
     check_call(['docker', 'kill', name])
     process.wait()
 

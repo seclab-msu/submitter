@@ -4,4 +4,4 @@
 
 export SCORES_DB
 
-python reset_flag.py "$@"
+python3 reset_flag.py "$@"

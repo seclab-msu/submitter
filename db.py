@@ -53,7 +53,7 @@ def init_db():
         connect = lambda: connect_sqlite(db_path)
         conn = connect()
         IntegrityError = sqlite3.IntegrityError
-        os.chmod(db_path, 0664)
+        os.chmod(db_path, 0o664)
 
     elif db.startswith(POSTGRES_SCHEMA):
         connect = lambda: ConnectPg(db)
