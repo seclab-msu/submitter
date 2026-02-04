@@ -82,12 +82,12 @@ def create_tables(conn):
 
 
     c.execute('''CREATE TABLE IF NOT EXISTS submissions
-                 ("user" text, flag text, time text, ip inet)''')
+                 ("user" text, flag text, time timestamptz, ip inet)''')
 
     c.execute('''CREATE TABLE IF NOT EXISTS accepted_flags
                  ("user" text,
                   task text,
-                  time text,
+                  time timestamptz,
                   ip inet,
                   primary key("user", task),
                   foreign key("user") references users(name),

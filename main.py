@@ -2,7 +2,7 @@ import os
 from flask import Flask, request, render_template, abort
 import random
 from time import time
-from datetime import datetime
+import datetime
 from traceback import print_exc
 
 from db import connect, IntegrityError
@@ -83,7 +83,7 @@ def register_user(name):
 def register_flag(user, flag, user_ip):
     conn = connect()
 
-    now = datetime.now()
+    now = datetime.datetime.now(tz=datetime.timezone.utc)
 
     c = conn.cursor()
 
