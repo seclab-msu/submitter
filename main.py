@@ -40,7 +40,14 @@ def get_scores():
     c = conn.cursor()
 
     try:
-        c.execute('select name, score from users where active=true order by score desc, last_submission')
+        c.execute('''
+                select name, coalesce(sum(accepted_flags.score), 0) as score
+                from users
+                left outer join accepted_flags on users.name = accepted_flags.user
+                where active=true
+                group by name
+                order by score desc
+        ''')
         return [(name, score) for name, score in c.fetchall()]
     finally:
         conn.close()
@@ -61,10 +68,10 @@ def check_user_active(name):
 
 def check_user(name, cursor):
     if hasattr(cursor, 'insert_if_not_exists'):
-        cursor.insert_if_not_exists("insert into users values (?, 0, false)", (name,))
+        cursor.insert_if_not_exists("insert into users values (?, false)", (name,))
     else:
         try:
-            cursor.execute("insert into users (name, score, active) values (?, 0, false)", (name,))
+            cursor.execute("insert into users (name, active) values (?, false)", (name,))
         except IntegrityError:
             pass
 
@@ -72,7 +79,7 @@ def register_user(name):
     conn = connect()
     cursor = conn.cursor()
     try:
-        cursor.execute("insert into users (name, score, active) values (?, 0, false)", (name,))
+        cursor.execute("insert into users (name, active) values (?, false)", (name,))
         return "ok"
     except IntegrityError:
         return "user exists"
@@ -105,12 +112,8 @@ def register_flag(user, flag, user_ip):
             check_user(user, c)
 
         c.execute(
-            "insert into accepted_flags values (?, ?, ?, ?::inet)",
-            (user, task_name, now, user_ip)
-        )
-        c.execute(
-            "update users set score = score + ?, last_submission = datetime('now') where name = ?",
-            (task_value, user)
+            "insert into accepted_flags values (?, ?, ?, ?, ?::inet)",
+            (user, task_name, task_value, now, user_ip)
         )
         if USE_FLAG_REPLACER:
             print('running change flag')

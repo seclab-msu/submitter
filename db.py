@@ -76,9 +76,7 @@ def create_tables(conn):
 
     c.execute('''CREATE TABLE IF NOT EXISTS users
                  (name text primary key,
-                  score real,
-                  active bool,
-                  last_submission timestamptz)''')
+                  active bool)''')
 
 
     c.execute('''CREATE TABLE IF NOT EXISTS submissions
@@ -87,6 +85,7 @@ def create_tables(conn):
     c.execute('''CREATE TABLE IF NOT EXISTS accepted_flags
                  ("user" text,
                   task text,
+                  score real,
                   time timestamptz,
                   ip inet,
                   primary key("user", task),
