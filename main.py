@@ -41,9 +41,11 @@ def get_scores():
 
     try:
         c.execute('''
-                select name, coalesce(sum(accepted_flags.score), 0) as score
+                select name,
+                       coalesce(sum(accepted_flags.score), 0) + coalesce(sum(score_adjustment.score), 0) as score
                 from users
                 left outer join accepted_flags on users.name = accepted_flags.user
+                left outer join score_adjustment on users.name = score_adjustment.user
                 where active=true
                 group by name
                 order by score desc

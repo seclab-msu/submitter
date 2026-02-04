@@ -92,6 +92,12 @@ def create_tables(conn):
                   foreign key("user") references users(name),
                   foreign key(task) references tasks(name))''')
 
+    c.execute('''CREATE TABLE IF NOT EXISTS score_adjustment
+                 ("user" text,
+                  score real not null,
+                  comment text not null,
+                  foreign key("user") references users(name))''')
+
     conn.commit()
     conn.close()
 
