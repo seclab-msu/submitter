@@ -99,6 +99,15 @@ def create_tables(conn):
                   comment text not null,
                   foreign key("user") references users(name))''')
 
+    c.execute('''CREATE OR REPLACE VIEW users_with_scores AS
+                  SELECT NAME,
+                  COALESCE(SUM(accepted_flags.score), 0) + COALESCE(SUM(score_adjustment.score), 0) AS score
+                  FROM users
+                  LEFT OUTER JOIN accepted_flags ON users.name = accepted_flags.user
+                  LEFT OUTER JOIN score_adjustment ON users.name = score_adjustment.user
+                  WHERE active = TRUE
+                  GROUP BY NAME''')
+
     conn.commit()
     conn.close()
 
