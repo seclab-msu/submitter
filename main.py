@@ -114,8 +114,8 @@ def register_flag(user, flag, user_ip):
             check_user(user, c)
 
         c.execute(
-            "insert into accepted_flags values (?, ?, ?, ?, ?::inet)",
-            (user, task_name, task_value, now, user_ip)
+            "insert into accepted_flags values (?, ?, ?, ?, ?, ?::inet)",
+            (user, flag, task_name, task_value, now, user_ip)
         )
         if USE_FLAG_REPLACER:
             print('running change flag')

@@ -84,6 +84,7 @@ def create_tables(conn):
 
     c.execute('''CREATE TABLE IF NOT EXISTS accepted_flags
                  ("user" text,
+                  flag text,
                   task text,
                   score real,
                   time timestamptz,
