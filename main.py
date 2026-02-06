@@ -98,6 +98,7 @@ def register_flag(user, flag, user_ip):
 
     try:
         c.execute("insert into submissions values (?, ?, ?, ?::inet)", (user, flag, now, user_ip))
+        conn.commit()
 
         c.execute(
             "select name, value, prefix from tasks where flag = ?", (flag,)
