@@ -76,22 +76,37 @@ def create_tables(conn):
 
     c.execute('''CREATE TABLE IF NOT EXISTS users
                  (name text primary key,
-                  score real,
-                  active bool,
-                  last_submission timestamptz)''')
+                  active bool)''')
 
 
     c.execute('''CREATE TABLE IF NOT EXISTS submissions
-                 ("user" text, flag text, time text, ip inet)''')
+                 ("user" text, flag text, time timestamptz, ip inet)''')
 
     c.execute('''CREATE TABLE IF NOT EXISTS accepted_flags
                  ("user" text,
+                  flag text,
                   task text,
-                  time text,
+                  score real,
+                  time timestamptz,
                   ip inet,
                   primary key("user", task),
                   foreign key("user") references users(name),
                   foreign key(task) references tasks(name))''')
+
+    c.execute('''CREATE TABLE IF NOT EXISTS score_adjustment
+                 ("user" text,
+                  score real not null,
+                  comment text not null,
+                  foreign key("user") references users(name))''')
+
+    c.execute('''CREATE OR REPLACE VIEW users_with_scores AS
+                  SELECT NAME,
+                  COALESCE(SUM(accepted_flags.score), 0) + COALESCE(SUM(score_adjustment.score), 0) AS score
+                  FROM users
+                  LEFT OUTER JOIN accepted_flags ON users.name = accepted_flags.user
+                  LEFT OUTER JOIN score_adjustment ON users.name = score_adjustment.user
+                  WHERE active = TRUE
+                  GROUP BY NAME''')
 
     conn.commit()
     conn.close()
