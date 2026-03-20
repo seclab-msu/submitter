@@ -100,13 +100,20 @@ def create_tables(conn):
                   foreign key("user") references users(name))''')
 
     c.execute('''CREATE OR REPLACE VIEW users_with_scores AS
-                  SELECT NAME,
-                  COALESCE(SUM(accepted_flags.score), 0) + COALESCE(SUM(score_adjustment.score), 0) AS score
-                  FROM users
-                  LEFT OUTER JOIN accepted_flags ON users.name = accepted_flags.user
-                  LEFT OUTER JOIN score_adjustment ON users.name = score_adjustment.user
-                  WHERE active = TRUE
-                  GROUP BY NAME''')
+                    SELECT tmp.name,
+                        COALESCE(sum(tmp.score), 0::real) AS score
+                    FROM ( SELECT users.name,
+                                accepted_flags.score
+                            FROM users
+                                LEFT JOIN accepted_flags ON accepted_flags."user" = users.name
+                            WHERE users.active = true
+                            UNION ALL
+                            SELECT users.name,
+                                score_adjustment.score
+                            FROM users
+                                LEFT JOIN score_adjustment ON score_adjustment."user" = users.name
+                            WHERE users.active = true) tmp
+                    GROUP BY tmp.name;''')
 
     conn.commit()
     conn.close()
